@@ -3,8 +3,8 @@
 namespace :blockchain do
   desc 'Grant default NOTARY and GOVERNMENT roles to configured addresses'
   task grant_roles: :environment do
-    notary = ENV['NOTARY_ADDRESS'] || ENV['DEFAULT_NOTARY'] || '0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c'
-    government = ENV['GOVERNMENT_ADDRESS'] || ENV['DEFAULT_GOVERNMENT'] || '0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db'
+    notary = ENV['NOTARY_ADDRESS'] || ENV['DEFAULT_NOTARY'] || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC'
+    government = ENV['GOVERNMENT_ADDRESS'] || ENV['DEFAULT_GOVERNMENT'] || '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
     admin_pk = ENV['PRIVATE_KEY_ADMIN'] || ENV['PRIVATE_KEY_SELLER']
 
     if admin_pk.blank? || admin_pk.include?('__RELLENA__')

@@ -58,6 +58,11 @@
       </div>
     </nav>
     <main class="container">
+      <div id="flash" class="flash-area">
+        <% flash.each do |type,msg| %>
+          <div class="flash-item flash-<%= type %>"><%= msg %></div>
+        <% end %>
+      </div>
       <%= yield %>
     </main>
     <div id="toast-container" class="toast-container" data-controller="toast"></div>

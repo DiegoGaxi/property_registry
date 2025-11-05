@@ -188,7 +188,7 @@ class BlockchainPropertyRegistryClient
       nonce: nonce,
       chain_id: chain_id
     )
-    # Firma directa; si falla dejamos que la excepción original explique la causa
+    # Firma directa (sin mensajes específicos de OpenSSL). Si falla, cambia al flujo MetaMask.
     tx.sign(key)
     tx_hash = with_retries { @client.send_raw_transaction(tx.hex) }
     tx_hash

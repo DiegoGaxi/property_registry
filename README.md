@@ -54,8 +54,8 @@ Opcional: define `PRIVATE_KEY_ADMIN` si quieres separar la cuenta admin de `PRIV
 ### Asignación de roles (NOTARY_ROLE / GOVERNMENT_ROLE)
 Tras el despliegue, concede los roles necesarios para que notario y gobierno puedan sellar:
 ```
-NOTARY_ADDRESS=0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c \
-GOVERNMENT_ADDRESS=0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db \
+NOTARY_ADDRESS=0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC \
+GOVERNMENT_ADDRESS=0x90F79bf6EB2c4f870365E785982E1f101E93b906 \
 PRIVATE_KEY_ADMIN=<clave_privada_admin> \
 rake blockchain:grant_roles
 ```

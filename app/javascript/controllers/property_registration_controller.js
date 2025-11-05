@@ -74,9 +74,19 @@ export default class extends Controller {
       this._flash('Tx enviada, esperando recibo...');
       const receipt = await tx.wait();
       const txHash = receipt.hash;
+      console.log('[registerProperty] receipt', receipt);
+      // Extraer propertyId del evento PropertyRegistered
+      const propertyIdOnChain = this._extractRegisteredId(receipt) || null;
+      console.log('[registerProperty] extracted propertyIdOnChain', propertyIdOnChain);
+      if (propertyIdOnChain) {
+        await this._persistOnChainId(propertyIdOnChain);
+        this._flash('ID on-chain='+propertyIdOnChain+' sincronizado');
+      } else {
+        this._flash('No se pudo extraer propertyId del recibo; intenta sincronizar manualmente.');
+      }
       await this._callback({ property_id: this.propertyId, seller_address: from, buyer_address: buyer, notary_address: notary, government_address: gov, tx_hash: txHash });
       this._flash('Registro on-chain registrado');
-      window.location.href = '/properties';
+      window.location.href = `/properties/${this.propertyId}`;
     } catch (e) {
       console.error(e);
       this._flash('Error: ' + (e.message || 'falló registro'));
@@ -138,6 +148,41 @@ export default class extends Controller {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error || 'callback error');
+    }
+  }
+
+  _extractRegisteredId(receipt) {
+    if (!receipt || !receipt.logs) return null;
+    // Buscar evento PropertyRegistered por topic0 hash
+    const iface = new ethers.Interface([
+      'event PropertyRegistered(uint256 indexed id,address indexed seller,address indexed buyer,address notary,bytes32 docHash)'
+    ]);
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed && parsed.name === 'PropertyRegistered') {
+          return parsed.args.id.toString();
+        }
+      } catch (_) { /* ignorar logs que no matchean */ }
+    }
+    return null;
+  }
+
+  async _persistOnChainId(id) {
+    try {
+      const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+      const formData = new FormData();
+      formData.append('property_record[property_id_on_chain]', id);
+      const resp = await fetch(`/properties/${this.propertyId}`, {
+        method: 'PATCH',
+        headers: { 'X-CSRF-Token': csrf },
+        body: formData
+      });
+      if (!resp.ok) {
+        console.warn('Persist property_id_on_chain fallo', resp.status);
+      }
+    } catch (e) {
+      console.warn('Persist error', e);
     }
   }
 

@@ -4,8 +4,8 @@ namespace :blockchain do
   desc 'List NOTARY_ROLE and GOVERNMENT_ROLE membership for configured addresses'
   task roles_status: :environment do
     client = BlockchainPropertyRegistryClient.new
-    notary = ENV['NOTARY_ADDRESS'] || ENV['DEFAULT_NOTARY'] || '0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c'
-    government = ENV['GOVERNMENT_ADDRESS'] || ENV['DEFAULT_GOVERNMENT'] || '0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db'
+    notary = ENV['NOTARY_ADDRESS'] || ENV['DEFAULT_NOTARY'] || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC'
+    government = ENV['GOVERNMENT_ADDRESS'] || ENV['DEFAULT_GOVERNMENT'] || '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
 
     puts "Contract: #{ENV['CONTRACT_ADDRESS']}"
     puts "RPC: #{ENV['RPC_URL']}"

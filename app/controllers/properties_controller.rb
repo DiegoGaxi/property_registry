@@ -1,5 +1,5 @@
 class PropertiesController < ApplicationController
-  before_action :set_property, only: %i[show notary_approve buyer_approve government_seal mark_completed cancel]
+  before_action :set_property, only: %i[show update notary_approve buyer_approve government_seal mark_completed cancel]
 
   def index
     @properties = PropertyRecord.order(created_at: :desc)
@@ -10,8 +10,8 @@ class PropertiesController < ApplicationController
     @property = PropertyRecord.new(
       seller_address:  ENV['DEFAULT_SELLER']    || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
       buyer_address:   ENV['DEFAULT_BUYER']     || '0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2',
-      notary_address:  ENV['DEFAULT_NOTARY']    || '0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c',
-      government_address: ENV['DEFAULT_GOV']    || '0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db'
+      notary_address:  ENV['DEFAULT_NOTARY']    || '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+      government_address: ENV['DEFAULT_GOV']    || '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
     )
   end
 
@@ -74,26 +74,45 @@ class PropertiesController < ApplicationController
     send_file file, disposition: 'inline', type: mime
   end
 
+  # PATCH /properties/:id (solo para sincronizar property_id_on_chain inicialmente)
+  def update
+    incoming_id = params.dig(:property_record, :property_id_on_chain)
+    updated = false
+    if incoming_id.present? && @property.property_id_on_chain.blank?
+      updated = @property.update(property_id_on_chain: incoming_id)
+    end
+    respond_to do |format|
+      format.turbo_stream { turbo_stream_replace_status }
+      format.html { redirect_to @property, notice: (updated ? 'ID on-chain sincronizado' : 'Sin cambios') }
+      format.json { render json: { id: @property.id, property_id_on_chain: @property.property_id_on_chain, updated: updated } }
+    end
+  end
+
   def notary_approve
     ensure_role!(:notary)
+    # Flujo unificado: requerimos property_id_on_chain y tx_hash si estamos en modo MetaMask.
     if ENV['SERVER_SIGNING_DISABLED'] == '1'
-      # Esperar tx_hash desde params (flujo MetaMask)
-      if params[:tx_hash].blank?
-        redirect_to @property, alert: 'tx_hash faltante (firma cliente). Envia notaryApprove con MetaMask primero.' and return
+      if @property.property_id_on_chain.blank?
+        return respond_with_flash('Registra primero la propiedad on-chain para obtener property_id_on_chain.')
       end
+      if params[:tx_hash].blank?
+        return respond_with_flash('tx_hash faltante (firma cliente). Ejecuta notaryApprove en MetaMask y reintenta.')
+      end
+      @property.update(status: :notary_approved)
+      PropertyTransactionRecorder.new.record(property: @property, action: 'notaryApprove', tx_hash: params[:tx_hash])
     else
+      # Modo server signing (legacy). Si la clave no está configurada, orientar al modo MetaMask.
       if ENV['PRIVATE_KEY_NOTARY'].blank? || ENV['PRIVATE_KEY_NOTARY'].include?('__RELLENA__')
-        redirect_to @property, alert: 'Falta PRIVATE_KEY_NOTARY en .env (o habilita SERVER_SIGNING_DISABLED=1 para usar MetaMask).' and return
+        return respond_with_flash('Configura PRIVATE_KEY_NOTARY o activa SERVER_SIGNING_DISABLED=1 para usar MetaMask.')
       end
       if @property.property_id_on_chain.blank?
-        redirect_to @property, alert: 'property_id_on_chain ausente; registra primero on-chain.' and return
+        return respond_with_flash('property_id_on_chain ausente; registra primero on-chain.')
       end
       client = BlockchainPropertyRegistryClient.new(private_key: ENV['PRIVATE_KEY_NOTARY'])
       tx_hash = client.notary_approve(@property.property_id_on_chain.to_i)
-  PropertyTransactionRecorder.new.record(property: @property, action: 'notaryApprove', tx_hash: tx_hash)
+      @property.update(status: :notary_approved)
+      PropertyTransactionRecorder.new.record(property: @property, action: 'notaryApprove', tx_hash: tx_hash)
     end
-    @property.update(status: :notary_approved)
-  PropertyTransactionRecorder.new.record(property: @property, action: 'notaryApprove', tx_hash: params[:tx_hash]) if params[:tx_hash].present?
     turbo_stream_replace_status
   end
 
@@ -164,7 +183,7 @@ class PropertiesController < ApplicationController
   end
 
   def property_params
-    params.require(:property_record).permit(:seller_address, :buyer_address, :notary_address, :government_address)
+    params.require(:property_record).permit(:seller_address, :buyer_address, :notary_address, :government_address, :property_id_on_chain)
   end
 
   def ensure_role!(role)
@@ -182,9 +201,22 @@ class PropertiesController < ApplicationController
         # Reemplazar barra de progreso y acciones ahora que cambiaron status/etapas
         streams << turbo_stream.replace("progress_#{@property.id}", partial: 'properties/progress', locals: { property: @property })
         streams << turbo_stream.replace("actions_#{@property.id}", partial: 'properties/actions', locals: { property: @property })
+        streams << turbo_stream.replace('flash', partial: 'shared/flash_inline', locals: { flash_message: flash[:alert] || flash[:notice] }) if flash[:alert] || flash[:notice]
         render turbo_stream: streams
       end
       format.html { redirect_to @property }
+    end
+  end
+
+  def respond_with_flash(message)
+    flash[:alert] = message
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.replace('flash', partial: 'shared/flash_inline', locals: { flash_message: message })
+        ]
+      end
+      format.html { redirect_to @property, alert: message }
     end
   end
 

@@ -29,7 +29,13 @@ export default class extends Controller {
       if (this._currentObjectUrl) URL.revokeObjectURL(this._currentObjectUrl);
       const objUrl = URL.createObjectURL(blob);
       this._currentObjectUrl = objUrl;
-      this.modalContent.innerHTML = `<iframe class='doc-frame' src='${objUrl}'></iframe>`;
+      const isPdf = blob.type === 'application/pdf' || url.toLowerCase().endsWith('.pdf');
+      let frameSrc = objUrl;
+      // Ocultar toolbar del visor PDF nativo (#toolbar=0). Si ya hay hash, concatenar.
+      if (isPdf) {
+        frameSrc = objUrl.includes('#') ? `${objUrl}&toolbar=0&navpanes=0&scrollbar=0` : `${objUrl}#toolbar=0&navpanes=0&scrollbar=0`;
+      }
+      this.modalContent.innerHTML = `<iframe class='doc-frame' src='${frameSrc}'></iframe>`;
     } catch (e2) {
       this.modalContent.innerHTML = `<div class='error'>Error cargando documento: ${(e2.message || e2)}</div>`;
     }
@@ -43,6 +49,7 @@ export default class extends Controller {
     if (frame) frame.src = 'about:blank';
     this.modal.classList.remove('open');
     this.modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
   }
 
   _ensureModal() {
@@ -76,7 +83,10 @@ export default class extends Controller {
   }
 
   _show() {
-    this.modal.style.display = 'block';
+    this.modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+    // Forzar reflow para asegurar transición de opacidad + translate
+    void this.modal.offsetWidth;
     requestAnimationFrame(() => this.modal.classList.add('open'));
   }
 

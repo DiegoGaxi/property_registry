@@ -1,10 +1,13 @@
 <div class="acciones" data-controller="property-approval"
-     data-property-approval-property-id-value="<%= property.property_id_on_chain || property.id %>"
+  data-property-approval-property-id-value="<%= property.property_id_on_chain %>"
      data-property-approval-seller-address-value="<%= property.seller_address %>"
      data-property-approval-buyer-address-value="<%= property.buyer_address %>"
      data-property-approval-notary-address-value="<%= property.notary_address %>"
      data-property-approval-government-address-value="<%= property.government_address %>">
   <% if ENV['SERVER_SIGNING_DISABLED'] == '1' %>
+      <% unless property.property_id_on_chain.present? %>
+        <div class="helper-text" style="margin-bottom:8px;color:#b91c1c;font-size:0.6rem">Registra la propiedad on-chain primero para obtener el ID antes de aprobar.</div>
+      <% end %>
       <% if property.pending_notary? %>
         <button data-action="click->property-approval#notaryApprove" data-role="notary">MetaMask: Aprobar Notario</button>
       <% elsif property.notary_approved? %>
@@ -16,7 +19,7 @@
       <% end %>
   <% else %>
     <% if property.pending_notary? %>
-      <%= button_to 'Aprobar Notario', notary_approve_property_path(property), method: :patch, data: { turbo_stream: true } %>
+      <%= button_to 'Aprobar Notario (server)', notary_approve_property_path(property), method: :patch, data: { turbo_stream: false }, form: { data: { turbo: false } } %>
     <% elsif property.notary_approved? %>
       <%= button_to 'Aprobar Comprador', buyer_approve_property_path(property), method: :patch, data: { turbo_stream: true } %>
     <% elsif property.buyer_approved? %>

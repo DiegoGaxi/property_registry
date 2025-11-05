@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe PropertyRecord, type: :model do
   let(:seller) { '0x5FbDB2315678afecb367f032d93F642f64180aa3' }
   let(:buyer)  { '0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2' }
-  let(:notary) { '0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c' }
-  let(:gov)    { '0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db' }
+  let(:notary) { '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' }
+  let(:gov)    { '0x90F79bf6EB2c4f870365E785982E1f101E93b906' }
   let(:document_path) { 'storage/property_documents/example.txt' }
 
   subject do
