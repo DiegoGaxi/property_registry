@@ -17,7 +17,7 @@ gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 # Blockchain interaction and environment management
-gem "eth", "~> 0.4.18"
+gem "eth", "~> 0.5.16"
 gem "dotenv-rails"
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
