@@ -1,0 +1,37 @@
+<div class="page-header">
+  <h2 class="page-title">Nueva Propiedad</h2>
+  <%= link_to '← Regresar', properties_path, class: 'btn btn-secondary' %>
+</div>
+
+<div class="card form-card" data-controller="property-registration" data-action="submit->property-registration#register">
+  <%= form_with model: @property, url: properties_path, data: { turbo: true } do |f| %>
+    <div class="form-grid">
+      <div class="form-field">
+        <%= f.label :seller_address %>
+        <%= f.text_field :seller_address, data: { property_registration_target: 'seller' } %>
+      </div>
+      <div class="form-field">
+        <%= f.label :buyer_address %>
+        <%= f.text_field :buyer_address, data: { property_registration_target: 'buyer' } %>
+      </div>
+      <div class="form-field">
+        <%= f.label :notary_address %>
+        <%= f.text_field :notary_address, data: { property_registration_target: 'notary' } %>
+      </div>
+      <div class="form-field">
+        <%= f.label :government_address %>
+        <%= f.text_field :government_address, data: { property_registration_target: 'government' } %>
+      </div>
+      <div class="form-field">
+        <%= f.label :document_file, 'Documento' %>
+        <%= f.file_field :document_file, accept: '.pdf,.txt,.json,.xml', data: { property_registration_target: 'file' } %>
+        <div class="helper-text">Sube tu documento (se almacenará en storage/).</div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <%= f.submit 'Crear Off-Chain', class: 'btn btn-secondary' %>
+      <button type="button" class="btn btn-primary" data-property-registration-target="metamaskBtn" data-action="click->property-registration#register">Registrar On-Chain (MetaMask)</button>
+    </div>
+    <p class="status" data-property-registration-target="status"></p>
+  <% end %>
+</div>

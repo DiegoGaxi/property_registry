@@ -1,0 +1,51 @@
+<% txs = property.property_transactions.recent %>
+<div class="tx-list" data-controller="transactions-poll" data-transactions-poll-property-id-value="<%= property.id %>">
+  <% if txs.empty? %>
+    <p class="tx-empty">Sin transacciones registradas aún.</p>
+  <% else %>
+  <table class="tx-table modern compact">
+      <thead>
+        <tr>
+          <th>Acción</th>
+          <th>Tx</th>
+          <th>Status / Detalles</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% txs.each do |t| %>
+          <tr class="tx-row <%= t.status %>">
+            <td><%= t.action %></td>
+            <td class="mono" title="<%= t.tx_hash %>"><%= t.short_hash %>
+              <button type="button" class="copy-btn" data-tx="<%= t.tx_hash %>" onclick="navigator.clipboard.writeText('<%= t.tx_hash %>')">Copiar</button>
+            </td>
+            <td>
+              <span class="badge <%= t.status %>"><%= t.status %></span>
+              <% if t.block_number.present? %>
+                <span class="confirms">block <%= t.block_number %></span>
+              <% end %>
+              <% if t.gas_used.present? && t.effective_gas_price.present? %>
+                <span class="fee">fee <%= ((t.gas_used.to_f * t.effective_gas_price.to_f) / 1_000_000_000_000_000_000).round(6) %> ETH</span>
+              <% end %>
+              <% if t.input_data.present? %>
+                <button type="button" class="raw-btn" data-action="click->tx-list#toggle" data-tx-list-target="toggle" data-id="raw_<%= t.id %>">Raw</button>
+              <% end %>
+            </td>
+          </tr>
+          <% if t.input_data.present? %>
+            <tr id="raw_<%= t.id %>" class="tx-raw" style="display:none">
+              <td colspan="3">
+                <div class="raw-box">
+                  <strong>Calldata:</strong>
+                  <code><%= t.input_data %></code>
+                  <% if t.effective_gas_price %>
+                    <div>Effective Gas Price: <%= (t.effective_gas_price.to_f / 1_000_000_000).round(2) %> gwei</div>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

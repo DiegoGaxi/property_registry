@@ -1,0 +1,24 @@
+0000000000000000000000000000000000000000 8d25c8da787ac6a66420f5c51a7c1443e0b4e506 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313494 -0700	commit (initial): property registry app connected to metamask and solidity smart contract to transfer ownership of a property
+8d25c8da787ac6a66420f5c51a7c1443e0b4e506 884bad63ae4d941040dace0b96e5650dd4ba79d5 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313704 -0700	checkout: moving from master to main
+884bad63ae4d941040dace0b96e5650dd4ba79d5 8d25c8da787ac6a66420f5c51a7c1443e0b4e506 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313709 -0700	checkout: moving from main to master
+8d25c8da787ac6a66420f5c51a7c1443e0b4e506 884bad63ae4d941040dace0b96e5650dd4ba79d5 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313771 -0700	checkout: moving from master to main
+884bad63ae4d941040dace0b96e5650dd4ba79d5 8717b5826a62f7245888036e45639f89929c54d8 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313863 -0700	commit: env default
+8717b5826a62f7245888036e45639f89929c54d8 8d25c8da787ac6a66420f5c51a7c1443e0b4e506 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313891 -0700	rebase (start): checkout master
+8d25c8da787ac6a66420f5c51a7c1443e0b4e506 ba969c5112930786636259662eb6eefa1656d7b8 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313901 -0700	commit: merge
+ba969c5112930786636259662eb6eefa1656d7b8 bd51f5c0476f2eacf3e0cba4db1ac8f3b6eef182 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313904 -0700	rebase (pick): env default
+bd51f5c0476f2eacf3e0cba4db1ac8f3b6eef182 bd51f5c0476f2eacf3e0cba4db1ac8f3b6eef182 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313904 -0700	rebase (finish): returning to refs/heads/main
+bd51f5c0476f2eacf3e0cba4db1ac8f3b6eef182 8d25c8da787ac6a66420f5c51a7c1443e0b4e506 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313946 -0700	checkout: moving from main to master
+8d25c8da787ac6a66420f5c51a7c1443e0b4e506 bd51f5c0476f2eacf3e0cba4db1ac8f3b6eef182 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314032 -0700	checkout: moving from master to main
+bd51f5c0476f2eacf3e0cba4db1ac8f3b6eef182 884bad63ae4d941040dace0b96e5650dd4ba79d5 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314048 -0700	pull --rebase origin main (start): checkout 884bad63ae4d941040dace0b96e5650dd4ba79d5
+884bad63ae4d941040dace0b96e5650dd4ba79d5 7da9ea344c24cec05e85d3b5a0aa7ec40f14a845 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314058 -0700	commit: rebase
+7da9ea344c24cec05e85d3b5a0aa7ec40f14a845 0ebaa5a49e8a9596f4d0b4896a2fe3842c5f5d9b DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314067 -0700	commit: change
+0ebaa5a49e8a9596f4d0b4896a2fe3842c5f5d9b f81e2a25e4715a41701b23108294dd2898569183 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314068 -0700	rebase (pick): env default
+f81e2a25e4715a41701b23108294dd2898569183 f81e2a25e4715a41701b23108294dd2898569183 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314068 -0700	rebase (finish): returning to refs/heads/main
+f81e2a25e4715a41701b23108294dd2898569183 8d25c8da787ac6a66420f5c51a7c1443e0b4e506 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314184 -0700	checkout: moving from main to master
+8d25c8da787ac6a66420f5c51a7c1443e0b4e506 a766b49fd3d1d41b8f8b50b0716f751cfd7035b8 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314353 -0700	commit: workflow github
+a766b49fd3d1d41b8f8b50b0716f751cfd7035b8 884bad63ae4d941040dace0b96e5650dd4ba79d5 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314393 -0700	pull --rebase origin master (start): checkout 884bad63ae4d941040dace0b96e5650dd4ba79d5
+884bad63ae4d941040dace0b96e5650dd4ba79d5 25a093fb4f220de740d7e5f8060bb9a77ba1f185 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314406 -0700	commit: chsnge
+25a093fb4f220de740d7e5f8060bb9a77ba1f185 a766b49fd3d1d41b8f8b50b0716f751cfd7035b8 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314424 -0700	rebase (abort): returning to refs/heads/master
+a766b49fd3d1d41b8f8b50b0716f751cfd7035b8 884bad63ae4d941040dace0b96e5650dd4ba79d5 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314462 -0700	pull --rebase origin master (start): checkout 884bad63ae4d941040dace0b96e5650dd4ba79d5
+884bad63ae4d941040dace0b96e5650dd4ba79d5 8e74c58d27be50e20834eece764f6ed937dbab87 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314469 -0700	commit: a
+8e74c58d27be50e20834eece764f6ed937dbab87 a766b49fd3d1d41b8f8b50b0716f751cfd7035b8 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314471 -0700	rebase (abort): returning to refs/heads/master

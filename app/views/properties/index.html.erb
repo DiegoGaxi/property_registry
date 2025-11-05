@@ -1,0 +1,31 @@
+<div class="page-header">
+  <h1 class="page-title">Propiedades</h1>
+  <%= link_to 'Nueva propiedad', new_property_path, class: 'btn btn-primary' %>
+</div>
+
+<div class="card">
+  <table class="table-finance">
+    <thead>
+      <tr>
+        <th>ID</th>
+  <th>Documento</th>
+        <th>Estado</th>
+        <th>Creada</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @properties.each do |p| %>
+        <tr class="fade-in">
+          <td><%= link_to p.id, property_path(p), class: 'mono' %></td>
+          <td class="mono" title="Documento"><%= p.document_path.present? ? File.basename(p.document_path) : '(sin archivo)' %></td>
+          <td id="status_<%= p.id %>">
+            <span class="status-badge status-<%= p.status %>"><%= p.status.humanize %></span>
+          </td>
+          <td><%= l p.created_at, format: :short rescue p.created_at.to_s(:short) %></td>
+          <td><%= link_to 'Ver', property_path(p), class: 'btn btn-secondary' %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

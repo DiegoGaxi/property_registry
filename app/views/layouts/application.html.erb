@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Rails App" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body data-contract-address="<%= ENV['CONTRACT_ADDRESS'] %>">
+    <nav class="app-navbar" data-controller="navbar">
+      <div class="nav-section nav-left">
+        <a href="/" class="brand" aria-label="Inicio">
+          <span class="brand-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="11" stroke="rgba(255,255,255,0.35)" stroke-width="2" />
+              <path d="M7 13.2L11.2 7h1.7L17 13.2l-1.4 3.8h-2.2l-.9-2.3h-2l-.9 2.3H7.8L7 13.2Z" fill="url(#gradChain)" />
+              <defs>
+                <linearGradient id="gradChain" x1="7" y1="7" x2="19" y2="19" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#16b384"/>
+                  <stop offset="1" stop-color="#0d966c"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+          <span class="brand-name">Property<span class="brand-accent">Chain</span></span>
+        </a>
+        <div class="network-pill" data-navbar-target="network" title="Chain ID actual">
+          <span class="dot live" aria-hidden="true"></span>
+          Chain <strong><%= ENV['CHAIN_ID'] || '—' %></strong>
+        </div>
+      </div>
+      <div class="nav-section nav-center">
+        <a href="/properties" class="nav-link <%= current_page?(properties_path) ? 'active' : '' %>">Propiedades</a>
+        <a href="/properties/new" class="nav-link <%= current_page?(new_property_path) ? 'active' : '' %>">Nueva</a>
+      </div>
+      <div class="nav-section nav-right">
+        <div class="wallet-pill" data-navbar-target="wallet" data-controller="fade-in">
+          <div class="wallet-disconnected" data-navbar-target="connectWrapper">
+            <button class="btn-ghost" data-action="navbar#connectWallet" data-navbar-target="connect">Conectar Wallet</button>
+          </div>
+          <div class="wallet-connected" data-navbar-target="walletInfo" hidden>
+            <button class="addr" data-navbar-target="account" data-action="click->navbar#copyAddress" title="Copiar dirección"></button>
+            <span class="balance" data-navbar-target="balance" title="Balance en ETH"></span>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <main class="container">
+      <%= yield %>
+    </main>
+    <div id="toast-container" class="toast-container" data-controller="toast"></div>
+  </body>
+</html>

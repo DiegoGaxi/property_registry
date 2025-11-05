@@ -1,0 +1,23 @@
+.nav-bar {display:flex;gap:1rem;align-items:center;padding:.75rem 1rem;background:#0d1b2a;color:#fff;font-family:system-ui;font-size:14px}
+.nav-bar a {color:#e0e1dd;text-decoration:none;font-weight:500}
+.nav-bar a.brand {font-size:16px;font-weight:600}
+.container {max-width:960px;margin:1.5rem auto;padding:0 1rem;font-family:system-ui}
+.property-form input[type=text] {width:100%;padding:.5rem;border:1px solid #ccc;border-radius:4px;margin-bottom:.5rem}
+.form-actions {display:flex;gap:.75rem;margin-top:.5rem}
+.form-actions button, .form-actions input[type=submit] {background:#1b263b;color:#fff;border:none;padding:.5rem .9rem;border-radius:4px;cursor:pointer}
+.form-actions button:hover, .form-actions input[type=submit]:hover {background:#415a77}
+.status {margin-top:.5rem;font-size:.85rem;color:#555}
+.toast-container {position:fixed;bottom:1rem;right:1rem;display:flex;flex-direction:column;gap:.5rem;z-index:9999}
+.toast {background:#1b263b;color:#fff;padding:.6rem .9rem;border-radius:4px;opacity:0;transform:translateY(6px);transition:all .25s ease;font-size:.85rem;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.toast.visible {opacity:1;transform:translateY(0)}
+.status-badge {display:inline-block;padding:.25rem .55rem;border-radius:12px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#fff}
+.status-pending_notary {background:#5c6bc0}
+.status-notary_approved {background:#0077b6}
+.status-buyer_approved {background:#0096c7}
+.status-government_sealed {background:#00b4d8}
+.status-completed {background:#2d6a4f}
+.status-cancelled {background:#9e2a2b}
+.progress-bar {display:flex;gap:.5rem;margin:1rem 0}
+.progress-step {flex:1;position:relative;padding:.5rem .4rem;text-align:center;border-radius:4px;font-size:.65rem;font-weight:600;background:#e0e1dd;color:#0d1b2a}
+.progress-step.active {background:#1b263b;color:#fff}
+.progress-step.done {background:#2d6a4f;color:#fff}

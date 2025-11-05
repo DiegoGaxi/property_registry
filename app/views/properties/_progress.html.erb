@@ -1,0 +1,18 @@
+<% steps = [:pending_notary,:notary_approved,:buyer_approved,:government_sealed,:completed] %>
+<% current_sym = property.status.to_sym rescue :pending_notary %>
+<% current_index = steps.index(current_sym) || -1 %>
+<div class="progress-bar">
+  <% steps.each_with_index do |st, idx| %>
+    <% klass = if current_sym == st
+      'progress-step active'
+    elsif current_index > idx
+      'progress-step done'
+    else
+      'progress-step'
+    end %>
+    <div class="<%= klass %>"><%= st.to_s.gsub('_',' ').capitalize %></div>
+  <% end %>
+  <% if current_sym == :cancelled %>
+    <div class="progress-step active" style="background:#9e2a2b;color:#fff">Cancelled</div>
+  <% end %>
+</div>

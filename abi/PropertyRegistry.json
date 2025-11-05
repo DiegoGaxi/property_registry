@@ -1,0 +1,14 @@
+{
+  "contractName": "PropertyRegistry",
+  "abi": [
+    {"type":"event","name":"PropertyRegistered","anonymous":false,"inputs":[{"indexed":true,"name":"id","type":"uint256"},{"indexed":true,"name":"seller","type":"address"},{"indexed":true,"name":"buyer","type":"address"},{"indexed":false,"name":"notary","type":"address"},{"indexed":false,"name":"docHash","type":"bytes32"}]},
+    {"type":"event","name":"NotaryApproved","anonymous":false,"inputs":[{"indexed":true,"name":"id","type":"uint256"},{"indexed":true,"name":"notary","type":"address"}]},
+    {"type":"event","name":"BuyerApproved","anonymous":false,"inputs":[{"indexed":true,"name":"id","type":"uint256"},{"indexed":true,"name":"buyer","type":"address"}]},
+    {"type":"event","name":"GovernmentSealed","anonymous":false,"inputs":[{"indexed":true,"name":"id","type":"uint256"},{"indexed":true,"name":"government","type":"address"}]},
+    {"type":"function","name":"registerProperty","stateMutability":"nonpayable","inputs":[{"name":"docHash","type":"bytes32"},{"name":"buyer","type":"address"},{"name":"notary","type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","name":"notaryApprove","stateMutability":"nonpayable","inputs":[{"name":"propertyId","type":"uint256"}],"outputs":[]},
+    {"type":"function","name":"buyerApprove","stateMutability":"nonpayable","inputs":[{"name":"propertyId","type":"uint256"}],"outputs":[]},
+    {"type":"function","name":"governmentSeal","stateMutability":"nonpayable","inputs":[{"name":"propertyId","type":"uint256"}],"outputs":[]},
+    {"type":"function","name":"getProperty","stateMutability":"view","inputs":[{"name":"propertyId","type":"uint256"}],"outputs":[{"components":[{"name":"id","type":"uint256"},{"name":"seller","type":"address"},{"name":"buyer","type":"address"},{"name":"notary","type":"address"},{"name":"government","type":"address"},{"name":"docHash","type":"bytes32"},{"name":"status","type":"uint8"},{"name":"createdAt","type":"uint64"},{"name":"updatedAt","type":"uint64"},{"name":"buyerApproved","type":"bool"},{"name":"notaryApproved","type":"bool"},{"name":"governmentSealed","type":"bool"}],"type":"tuple"}]} 
+  ]
+}

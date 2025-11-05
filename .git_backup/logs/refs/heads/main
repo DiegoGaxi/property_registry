@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 884bad63ae4d941040dace0b96e5650dd4ba79d5 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313704 -0700	branch: Created from origin/main
+884bad63ae4d941040dace0b96e5650dd4ba79d5 8717b5826a62f7245888036e45639f89929c54d8 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313863 -0700	commit: env default
+8717b5826a62f7245888036e45639f89929c54d8 bd51f5c0476f2eacf3e0cba4db1ac8f3b6eef182 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762313904 -0700	rebase (finish): refs/heads/main onto 8d25c8da787ac6a66420f5c51a7c1443e0b4e506
+bd51f5c0476f2eacf3e0cba4db1ac8f3b6eef182 f81e2a25e4715a41701b23108294dd2898569183 DESKTOP-HUMRT1J\diego <diego.gaxi@hotmail.com> 1762314068 -0700	rebase (finish): refs/heads/main onto 884bad63ae4d941040dace0b96e5650dd4ba79d5

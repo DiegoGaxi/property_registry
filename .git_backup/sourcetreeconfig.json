@@ -1,0 +1,35 @@
+{
+  "$id": "157",
+  "AutoRefresh": true,
+  "AutoRefreshRemotes": true,
+  "CommitTextLinks": null,
+  "DraftCommitMsg": "",
+  "IncomingSavedCount": 1,
+  "LastCheckedRemotes": "2025-11-04T20:47:51.4825451-07:00",
+  "LastUsedView": 1,
+  "LogBranchFilterIndex": 0,
+  "OutgoingSavedCount": 2,
+  "SidebarExpandedItems": [
+    "Branches",
+    "Remotes",
+    "Remotes/origin"
+  ],
+  "SidebarWidth": 210.0,
+  "SubtreeLinks": [],
+  "NeedsLargeFilesPull": false,
+  "RemoteProjectLinks": [
+    {
+      "$id": "158",
+      "BaseUrl": "https://www.github.com",
+      "Identifier": "DiegoGaxi/property_registry",
+      "RemoteName": "origin",
+      "Type": 0,
+      "Username": "DiegoGaxi",
+      "CloneUrl": null,
+      "ProjectUrl": null,
+      "AccountId": "DiegoGaxi@github.com",
+      "AvatarUrl": null,
+      "DisplayName": "origin: https://www.github.com"
+    }
+  ]
+}

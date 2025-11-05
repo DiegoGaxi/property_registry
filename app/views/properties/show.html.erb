@@ -1,0 +1,32 @@
+<div class="page-header">
+	<div class="header-left">
+		<h2 class="page-title">Propiedad <%= @property.id %></h2>
+		<%= link_to '← Regresar', properties_path, class: 'btn btn-secondary back-btn' %>
+	</div>
+	<div class="header-right"></div>
+</div>
+<%= render 'details', property: @property %>
+<div id="progress_<%= @property.id %>" class="progress-bar">
+	<% steps = [:pending_notary,:notary_approved,:buyer_approved,:government_sealed,:completed] %>
+	<% current_sym = @property.status.to_sym rescue :pending_notary %>
+	<% current_index = steps.index(current_sym) || -1 %>
+	<% steps.each_with_index do |st, idx| %>
+		<% klass = if current_sym == st
+			'progress-step active'
+		elsif current_index > idx
+			'progress-step done'
+		else
+			'progress-step'
+		end %>
+		<div class="<%= klass %>"><%= st.to_s.gsub('_',' ').capitalize %></div>
+	<% end %>
+	<% if current_sym == :cancelled %>
+		<div class="progress-step active" style="background:#9e2a2b;color:#fff">Cancelled</div>
+	<% end %>
+</div>
+<div id="status_<%= @property.id %>"><%= render 'status', property: @property %></div>
+<div id="transactions_<%= @property.id %>"><%= render 'transactions', property: @property %></div>
+
+<div id="actions_<%= @property.id %>">
+	<%= render 'actions', property: @property %>
+</div>

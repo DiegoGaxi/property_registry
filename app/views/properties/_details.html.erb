@@ -1,0 +1,42 @@
+<div class="card property-details">
+  <h3 class="details-title">Metadatos</h3>
+  <div class="details-grid">
+    <div class="detail-field">
+      <label>Documento</label>
+      <div class="value" data-controller="document-viewer" data-document-viewer-property-id-value="<%= @property.id %>">
+        <% if @property.document_path.present? %>
+          <span class="mono"><%= File.basename(@property.document_path) %></span>
+          <a href="#" class="mini-link" data-action="click->document-viewer#open">Ver</a>
+        <% else %>
+          <span class="mono">(no subido)</span>
+        <% end %>
+      </div>
+    </div>
+    <div class="detail-field">
+      <label>Seller</label>
+      <div class="value mono"><%= @property.seller_address %><button class="mini-btn" onclick="navigator.clipboard.writeText('<%= @property.seller_address %>')">Copiar</button></div>
+    </div>
+    <div class="detail-field">
+      <label>Buyer</label>
+      <div class="value mono"><%= @property.buyer_address %><button class="mini-btn" onclick="navigator.clipboard.writeText('<%= @property.buyer_address %>')">Copiar</button></div>
+    </div>
+    <div class="detail-field">
+      <label>Notary</label>
+      <div class="value mono"><%= @property.notary_address %><button class="mini-btn" onclick="navigator.clipboard.writeText('<%= @property.notary_address %>')">Copiar</button></div>
+    </div>
+    <div class="detail-field">
+      <label>Gobierno</label>
+      <div class="value mono"><%= @property.government_address %><button class="mini-btn" onclick="navigator.clipboard.writeText('<%= @property.government_address %>')">Copiar</button></div>
+    </div>
+    <% if @property.property_id_on_chain.present? %>
+      <div class="detail-field">
+        <label>ID On-Chain</label>
+        <div class="value mono"><%= @property.property_id_on_chain %></div>
+      </div>
+    <% end %>
+    <div class="detail-field">
+      <label>Status</label>
+      <div class="value"><span class="status-badge status-<%= @property.status %>"><%= @property.human_status %></span></div>
+    </div>
+  </div>
+</div>
