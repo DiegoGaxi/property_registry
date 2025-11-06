@@ -29,7 +29,9 @@ export default class extends Controller {
       if (this._currentObjectUrl) URL.revokeObjectURL(this._currentObjectUrl);
       const objUrl = URL.createObjectURL(blob);
       this._currentObjectUrl = objUrl;
-      this.modalContent.innerHTML = `<iframe class='doc-frame' src='${objUrl}'></iframe>`;
+      // Solo el visor PDF centrado; ocultar barra lateral/toolbar del visor PDF si el navegador respeta los parámetros
+      const viewerUrl = objUrl + '#toolbar=0&navpanes=0';
+      this.modalContent.innerHTML = `<iframe class='doc-frame' src='${viewerUrl}'></iframe>`;
     } catch (e2) {
       this.modalContent.innerHTML = `<div class='error'>Error cargando documento: ${(e2.message || e2)}</div>`;
     }
@@ -60,8 +62,8 @@ export default class extends Controller {
         </div>
         <div class='doc-content'></div>
       </div>`;
-  // Insertar en body para overlay pantalla completa
-  document.body.appendChild(this.modal);
+    // Insertar en body para overlay pantalla completa
+    document.body.appendChild(this.modal);
     this.modalContent = this.modal.querySelector('.doc-content');
     // Eventos de cierre
     const closeBtn = this.modal.querySelector('.close-btn');

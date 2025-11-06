@@ -1,7 +1,7 @@
 <% steps = [:pending_notary,:notary_approved,:buyer_approved,:government_sealed,:completed] %>
 <% current_sym = property.status.to_sym rescue :pending_notary %>
 <% current_index = steps.index(current_sym) || -1 %>
-<div class="progress-bar">
+<div id="progress_<%= property.id %>" class="progress-bar">
   <% steps.each_with_index do |st, idx| %>
     <% klass = if current_sym == st
       'progress-step active'

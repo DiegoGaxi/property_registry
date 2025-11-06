@@ -1,23 +1,237 @@
-.nav-bar {display:flex;gap:1rem;align-items:center;padding:.75rem 1rem;background:#0d1b2a;color:#fff;font-family:system-ui;font-size:14px}
-.nav-bar a {color:#e0e1dd;text-decoration:none;font-weight:500}
-.nav-bar a.brand {font-size:16px;font-weight:600}
-.container {max-width:960px;margin:1.5rem auto;padding:0 1rem;font-family:system-ui}
-.property-form input[type=text] {width:100%;padding:.5rem;border:1px solid #ccc;border-radius:4px;margin-bottom:.5rem}
-.form-actions {display:flex;gap:.75rem;margin-top:.5rem}
-.form-actions button, .form-actions input[type=submit] {background:#1b263b;color:#fff;border:none;padding:.5rem .9rem;border-radius:4px;cursor:pointer}
-.form-actions button:hover, .form-actions input[type=submit]:hover {background:#415a77}
-.status {margin-top:.5rem;font-size:.85rem;color:#555}
-.toast-container {position:fixed;bottom:1rem;right:1rem;display:flex;flex-direction:column;gap:.5rem;z-index:9999}
-.toast {background:#1b263b;color:#fff;padding:.6rem .9rem;border-radius:4px;opacity:0;transform:translateY(6px);transition:all .25s ease;font-size:.85rem;box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.toast.visible {opacity:1;transform:translateY(0)}
-.status-badge {display:inline-block;padding:.25rem .55rem;border-radius:12px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#fff}
-.status-pending_notary {background:#5c6bc0}
-.status-notary_approved {background:#0077b6}
-.status-buyer_approved {background:#0096c7}
-.status-government_sealed {background:#00b4d8}
-.status-completed {background:#2d6a4f}
-.status-cancelled {background:#9e2a2b}
-.progress-bar {display:flex;gap:.5rem;margin:1rem 0}
-.progress-step {flex:1;position:relative;padding:.5rem .4rem;text-align:center;border-radius:4px;font-size:.65rem;font-weight:600;background:#e0e1dd;color:#0d1b2a}
-.progress-step.active {background:#1b263b;color:#fff}
-.progress-step.done {background:#2d6a4f;color:#fff}
+/* Flash / Toast system */
+#flash-messages {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    top: auto;
+    z-index: 300;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 10px;
+    width: 360px;
+    max-width: 92vw;
+    pointer-events: none;
+}
+.flash {
+    background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-navy-alt) 65%);
+    color: #fff;
+    padding: 12px 44px 12px 16px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-radius: 10px;
+    box-shadow:
+        0 6px 16px -6px rgba(0, 0, 0, 0.45),
+        0 2px 6px rgba(0, 0, 0, 0.28);
+    line-height: 1.15rem;
+    position: relative;
+    animation: flashIn 0.35s cubic-bezier(0.16, 0.8, 0.24, 1) both;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+.flash:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+    pointer-events: none;
+}
+.flash--success {
+    background: linear-gradient(135deg, #059669 0%, #0d966c 45%, #16b384 100%);
+}
+.flash--error {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 55%, #7f1d1d 100%);
+}
+.flash--warn {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 55%, #92400e 100%);
+}
+.flash small {
+    display: block;
+    font-size: 0.55rem;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+.flash button.flash-close {
+    appearance: none;
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.18);
+    border: none;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        background 0.25s ease,
+        transform 0.25s ease;
+}
+.flash button.flash-close:hover {
+    background: rgba(255, 255, 255, 0.32);
+    transform: translateY(-50%) scale(1.05);
+}
+/* Ensures message block occupies remaining width without overlapping close */
+.flash .flash-msg {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+@keyframes flashIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+.flash {
+    pointer-events: auto;
+}
+.flash.fade-out {
+    opacity: 0;
+    transform: translateY(6px) scale(0.95);
+    transition:
+        opacity 0.35s ease,
+        transform 0.35s ease;
+}
+.nav-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #0d1b2a;
+    color: #fff;
+    font-family: system-ui;
+    font-size: 14px;
+}
+.nav-bar a {
+    color: #e0e1dd;
+    text-decoration: none;
+    font-weight: 500;
+}
+.nav-bar a.brand {
+    font-size: 16px;
+    font-weight: 600;
+}
+.container {
+    max-width: 960px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+    font-family: system-ui;
+}
+.property-form input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+.form-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+.form-actions button,
+.form-actions input[type="submit"] {
+    background: #1b263b;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.form-actions button:hover,
+.form-actions input[type="submit"]:hover {
+    background: #415a77;
+}
+.status {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #555;
+}
+.toast-container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 9999;
+}
+.toast {
+    background: #1b263b;
+    color: #fff;
+    padding: 0.6rem 0.9rem;
+    border-radius: 4px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: all 0.25s ease;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.55rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #fff;
+}
+.status-pending_notary {
+    background: #5c6bc0;
+}
+.status-notary_approved {
+    background: #0077b6;
+}
+.status-buyer_approved {
+    background: #0096c7;
+}
+.status-government_sealed {
+    background: #00b4d8;
+}
+.status-completed {
+    background: #2d6a4f;
+}
+.status-cancelled {
+    background: #9e2a2b;
+}
+.progress-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+.progress-step {
+    flex: 1;
+    position: relative;
+    padding: 0.5rem 0.4rem;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    background: #e0e1dd;
+    color: #0d1b2a;
+}
+.progress-step.active {
+    background: #1b263b;
+    color: #fff;
+}
+.progress-step.done {
+    background: #2d6a4f;
+    color: #fff;
+}

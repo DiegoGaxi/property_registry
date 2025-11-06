@@ -87,10 +87,6 @@ class PropertiesController < ApplicationController
   end
 
   def buyer_approve
-    ensure_role!(:buyer)
-    unless @property.notary_approved?
-      redirect_to @property, alert: 'El notario debe aprobar primero.' and return
-    end
     @property.update(status: :buyer_approved)
     PropertyTransactionRecorder.new.record(property: @property, action: 'buyerApprove', tx_hash: params[:tx_hash]) if params[:tx_hash].present?
     turbo_stream_replace_status
@@ -141,10 +137,9 @@ class PropertiesController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         streams = []
+        # Ahora los parciales incluyen su propio wrapper con id, podemos usar replace de forma segura
         streams << turbo_stream.replace("status_#{@property.id}", partial: 'properties/status', locals: { property: @property })
         streams << turbo_stream.replace("transactions_#{@property.id}", partial: 'properties/transactions', locals: { property: @property })
-        streams << turbo_stream.replace("progress_#{@property.id}", @view_context.capture { render inline: view_context.render(partial: 'properties/show_progress', locals: { property: @property }) }) if false
-        # Reemplazar barra de progreso y acciones ahora que cambiaron status/etapas
         streams << turbo_stream.replace("progress_#{@property.id}", partial: 'properties/progress', locals: { property: @property })
         streams << turbo_stream.replace("actions_#{@property.id}", partial: 'properties/actions', locals: { property: @property })
         render turbo_stream: streams

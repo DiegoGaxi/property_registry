@@ -1,5 +1,6 @@
-<div class="acciones" data-controller="property-approval"
-     data-property-approval-property-id-value="<%= property.id %>"
+<div id="actions_<%= property.id %>" class="acciones" data-controller="property-approval"
+     data-property-approval-record-id-value="<%= property.id %>"
+     data-property-approval-on-chain-id-value="<%= property.property_id_on_chain %>"
      data-property-approval-seller-address-value="<%= property.seller_address %>"
      data-property-approval-buyer-address-value="<%= property.buyer_address %>"
      data-property-approval-notary-address-value="<%= property.notary_address %>"

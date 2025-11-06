@@ -3,7 +3,7 @@ import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.m
 
 // Controller to perform client-side registerProperty via MetaMask and callback to Rails
 export default class extends Controller {
-  static targets = ["seller","buyer","notary","government","file","status","metamaskBtn"];
+  static targets = ["seller", "buyer", "notary", "government", "file", "status", "metamaskBtn"];
 
   connect() {
     if (!window.ethereum && this.hasStatusTarget) {
@@ -15,18 +15,31 @@ export default class extends Controller {
 
   async register(event) {
     event.preventDefault();
-    // Paso 1: crear propiedad off-chain (si aún no existe en esta sesión)
-  let seller = this.sellerTarget.value.trim();
-  let buyer = this.buyerTarget.value.trim();
-  let notary = this.notaryTarget.value.trim();
-  let gov = this.governmentTarget.value.trim();
+
+    // Evitar doble click / ejecución concurrente
+    if (this._registering) { this._flash('Registro en curso...'); return; }
+    this._registering = true;
+    if (this.hasMetamaskBtnTarget) this.metamaskBtnTarget.disabled = true;
+
+    // Helper para liberar estado si retornamos antes
+    const cleanupEarly = () => {
+      this._registering = false;
+      if (this.hasMetamaskBtnTarget) this.metamaskBtnTarget.disabled = false;
+    };
+
+    // Datos formulario
+    let seller = this.sellerTarget.value.trim();
+    let buyer = this.buyerTarget.value.trim();
+    let notary = this.notaryTarget.value.trim();
+    let gov = this.governmentTarget.value.trim();
     const fileInput = this.fileTarget;
     if (!fileInput.files || fileInput.files.length === 0) {
       this._flash('Sube un documento antes de registrar');
+      cleanupEarly();
       return;
     }
 
-    // Validación de direcciones para evitar resolución ENS en red Hardhat (sin soporte ENS)
+    // Validación de direcciones hex (evita intentos ENS)
     const isAddr = (v) => /^0x[0-9a-fA-F]{40}$/.test(v);
     const missing = [];
     if (!isAddr(seller)) missing.push('seller');
@@ -34,13 +47,14 @@ export default class extends Controller {
     if (!isAddr(notary)) missing.push('notary');
     if (!isAddr(gov)) missing.push('government');
     if (missing.length) {
-      this._flash('Direcciones inválidas o vacías: ' + missing.join(', ') + '. Usa hex 0x...');
+      this._flash('Direcciones inválidas o vacías: ' + missing.join(', ') + ' (usa 0x...40hex)');
+      cleanupEarly();
       return;
     }
 
     try {
+      // Paso 1: crear registro off-chain si no existe
       if (!this.id) {
-        // Construimos FormData manual para garantizar estructura property_record[...] y evitar problemas de model_name
         const fd = new FormData();
         fd.append('property_record[seller_address]', seller);
         fd.append('property_record[buyer_address]', buyer);
@@ -56,103 +70,98 @@ export default class extends Controller {
           body: fd,
           credentials: 'same-origin'
         });
-        const dataCreate = await resCreate.json().catch(()=>({}));
+        const dataCreate = await resCreate.json().catch(() => ({}));
         if (!resCreate.ok) {
           this._flash('Error creando propiedad: ' + (dataCreate.errors || dataCreate.error || 'desconocido'));
+          cleanupEarly();
           return;
         }
-  this.id = dataCreate.id;
-  this._flash('Propiedad creada (#'+this.id+'). Registrando');
+        this.id = dataCreate.id;
+        this._flash('Propiedad creada (#' + this.id + '). Registrando on-chain...');
       }
 
-      // Paso 2: registrar
-      if (!window.ethereum) { this._flash('MetaMask requerido'); return; }
-      if (!(await this.ensureNetwork())) return;
+      // Paso 2: interacción on-chain
+      if (!window.ethereum) { this._flash('MetaMask requerido'); cleanupEarly(); return; }
+      if (!(await this.ensureNetwork())) { cleanupEarly(); return; }
       await window.ethereum.request({ method: 'eth_requestAccounts' });
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const from = await signer.getAddress();
       const contractAddress = document.body.dataset.contractAddress;
-      if (!contractAddress) { this._flash('CONTRACT_ADDRESS faltante'); return; }
-      if (!/^0x[0-9a-fA-F]{40}$/.test(contractAddress)) {
-        this._flash('CONTRACT_ADDRESS inválido');
-        return;
-      }
-      // Normalizar direcciones (checksum) y reforzar validación para evitar que ethers intente ENS
+      if (!contractAddress) { this._flash('CONTRACT_ADDRESS faltante'); cleanupEarly(); return; }
+      if (!/^0x[0-9a-fA-F]{40}$/.test(contractAddress)) { this._flash('CONTRACT_ADDRESS inválido'); cleanupEarly(); return; }
+
+      // Normalizar checksum
       try {
         buyer = ethers.getAddress(buyer);
         notary = ethers.getAddress(notary);
-        // Normalizamos también seller y gov si fueron ingresadas (aunque seller se sustituye por signer más abajo)
         if (seller) seller = ethers.getAddress(seller);
         if (gov) gov = ethers.getAddress(gov);
-      } catch(addrErr) {
+      } catch (addrErr) {
         this._flash('Direcciones inválidas (checksum): ' + (addrErr.message || addrErr));
+        cleanupEarly();
         return;
       }
 
-    const abi = [
-      "function registerProperty(bytes32 docHash,address buyer,address notary) returns (uint256)",
-      // Evento real en el contrato: id, seller, buyer indexados; data: notary, docHash
-      "event PropertyRegistered(uint256 indexed id,address indexed seller,address indexed buyer,address notary,bytes32 docHash)"
-    ];
-    const contract = new ethers.Contract(contractAddress, abi, signer);
-    // Hash real del documento (keccak256 del contenido) para trazabilidad on-chain
-    const fileBuffer = await fileInput.files[0].arrayBuffer();
-    const fileBytes = new Uint8Array(fileBuffer);
-    const docHash = ethers.keccak256(fileBytes);
-    this._flash('Enviando transacción (hash documento calculado)...');
-    let tx;
-    try {
-      tx = await contract.registerProperty(docHash, buyer, notary);
-    } catch(callErr) {
-      if (/UNSUPPORTED_OPERATION/.test(callErr.message) && /ENS/.test(callErr.message)) {
-        this._flash('Error ENS: Ingresa direcciones hex válidas (0x...40hex).');
-        return;
+      const abi = [
+        'function registerProperty(bytes32 docHash,address buyer,address notary) returns (uint256)',
+        'event PropertyRegistered(uint256 indexed id,address indexed seller,address indexed buyer,address notary,bytes32 docHash)'
+      ];
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+
+      // Hash documento
+      const fileBuffer = await fileInput.files[0].arrayBuffer();
+      const fileBytes = new Uint8Array(fileBuffer);
+      const docHash = ethers.keccak256(fileBytes);
+      this._flash('Enviando transacción (hash calculado)...');
+
+      let tx;
+      try {
+        tx = await contract.registerProperty(docHash, buyer, notary);
+      } catch (callErr) {
+        if (/UNSUPPORTED_OPERATION/.test(callErr.message) && /ENS/.test(callErr.message)) {
+          this._flash('Error ENS: usa direcciones hex válidas (0x...40hex)');
+          cleanupEarly();
+          return;
+        }
+        throw callErr;
       }
-      throw callErr;
-    }
+
       this._flash('Tx enviada, esperando recibo...');
       const receipt = await tx.wait();
       const txHash = receipt.hash;
+
+      // Decodificar evento
       let onChainId = null;
       try {
         const log = receipt.logs.find(l => l.address && l.address.toLowerCase() === contractAddress.toLowerCase() && l.topics && l.topics.length === 4);
         if (log) {
           try {
-            // topic[1] => id
             onChainId = BigInt(log.topics[1]).toString();
-            // Extra validations opcionales
-            const buyerTopic  = log.topics[3];
-            const buyerAddr  = '0x' + buyerTopic.slice(26);
-            if (buyerAddr.toLowerCase() !== buyer.toLowerCase()) {
-              console.warn('Buyer en evento difiere de formulario', buyerAddr, buyer);
-            }
-            // data: notary (32 bytes) + docHash (32 bytes)
+            const buyerTopic = log.topics[3];
+            const buyerAddr = '0x' + buyerTopic.slice(26);
+            if (buyerAddr.toLowerCase() !== buyer.toLowerCase()) console.warn('Buyer evento difiere', buyerAddr, buyer);
             const dataHex = log.data.slice(2);
             if (dataHex.length === 128) {
-              const notarySlot = dataHex.slice(0,64);
-              const docHashSlot = dataHex.slice(64,128);
+              const notarySlot = dataHex.slice(0, 64);
+              const docHashSlot = dataHex.slice(64, 128);
               const notaryAddr = '0x' + notarySlot.slice(24);
               const docHashEvt = '0x' + docHashSlot;
-              if (notaryAddr.toLowerCase() !== notary.toLowerCase()) {
-                console.warn('Notary en evento difiere de formulario', notaryAddr, notary);
-              }
-              if (docHashEvt.toLowerCase() !== docHash.toLowerCase()) {
-                console.warn('docHash evento != docHash calculado', docHashEvt, docHash);
-              }
+              if (notaryAddr.toLowerCase() !== notary.toLowerCase()) console.warn('Notary evento difiere', notaryAddr, notary);
+              if (docHashEvt.toLowerCase() !== docHash.toLowerCase()) console.warn('docHash evento != calculado', docHashEvt, docHash);
             } else {
-              console.warn('Tamaño data inesperado para PropertyRegistered:', dataHex.length);
+              console.warn('Tamaño data inesperado PropertyRegistered:', dataHex.length);
             }
           } catch (inner) {
             console.warn('Error decodificando log PropertyRegistered', inner);
           }
         } else {
-          console.warn('Log PropertyRegistered no encontrado (topics!=4 o dirección distinta)');
+          console.warn('Log PropertyRegistered no encontrado');
         }
       } catch (outer) {
-        console.warn('Fallo general decodificando evento PropertyRegistered', outer);
+        console.warn('Fallo general decodificando PropertyRegistered', outer);
       }
-debugger
+
       await this._callback({
         property_id: this.id,
         property_id_on_chain: onChainId,
@@ -162,10 +171,14 @@ debugger
         government_address: gov,
         tx_hash: txHash
       });
+
       window.location.href = '/properties';
     } catch (e) {
       console.error(e);
       this._flash('Error: ' + (e.message || 'falló registro'));
+    } finally {
+      this._registering = false;
+      if (this.hasMetamaskBtnTarget) this.metamaskBtnTarget.disabled = false;
     }
   }
 
@@ -227,9 +240,20 @@ debugger
     }
   }
 
-  _flash(msg) {
+  _flash(msg, type = 'info') {
+    if (msg == null) msg = '';
+    msg = String(msg).trim();
+    if (!msg.length) msg = (type === 'error') ? 'Ocurrió un error inesperado.' : 'Acción realizada.';
     if (this.hasStatusTarget) this.statusTarget.textContent = msg;
-    const evt = new CustomEvent('toast', { detail: { message: msg } });
-    window.dispatchEvent(evt);
+    let box = document.getElementById('flash-messages');
+    if (!box) { box = document.createElement('div'); box.id = 'flash-messages'; document.body.prepend(box); }
+    const el = document.createElement('div');
+    el.className = 'flash ' + (type === 'error' ? 'flash--error' : type === 'success' ? 'flash--success' : type === 'warn' ? 'flash--warn' : '');
+    const span = document.createElement('span'); span.className = 'flash-msg'; span.textContent = msg;
+    const btn = document.createElement('button'); btn.className = 'flash-close'; btn.setAttribute('aria-label', 'Cerrar'); btn.textContent = '×';
+    el.appendChild(span); el.appendChild(btn); box.appendChild(el);
+    const remove = () => { el.classList.add('fade-out'); setTimeout(() => el.remove(), 380); };
+    btn.addEventListener('click', remove);
+    setTimeout(remove, type === 'error' ? 8000 : 5000);
   }
 }

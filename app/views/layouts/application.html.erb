@@ -19,7 +19,7 @@
   </head>
 
   <body data-contract-address="<%= ENV['CONTRACT_ADDRESS'] %>" data-chain-id="<%= ENV['CHAIN_ID'] %>">
-    <nav class="app-navbar" data-controller="navbar">
+    <nav class="app-navbar" data-controller="navbar" data-turbo-permanent>
       <div class="nav-section nav-left">
         <a href="/" class="brand" aria-label="Inicio">
           <span class="brand-icon" aria-hidden="true">
@@ -57,9 +57,9 @@
         </div>
       </div>
     </nav>
-    <main class="container">
+    <main class="container" id="main">
       <%= yield %>
     </main>
-    <div id="toast-container" class="toast-container" data-controller="toast"></div>
+    <div id="toast-container" class="toast-container" data-controller="toast" data-turbo-permanent></div>
   </body>
 </html>
