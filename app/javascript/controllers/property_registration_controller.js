@@ -16,18 +16,30 @@ export default class extends Controller {
   async register(event) {
     event.preventDefault();
     // Paso 1: crear propiedad off-chain (si aún no existe en esta sesión)
-    const seller = this.sellerTarget.value.trim();
-    const buyer = this.buyerTarget.value.trim();
-    const notary = this.notaryTarget.value.trim();
-    const gov = this.governmentTarget.value.trim();
+  let seller = this.sellerTarget.value.trim();
+  let buyer = this.buyerTarget.value.trim();
+  let notary = this.notaryTarget.value.trim();
+  let gov = this.governmentTarget.value.trim();
     const fileInput = this.fileTarget;
     if (!fileInput.files || fileInput.files.length === 0) {
       this._flash('Sube un documento antes de registrar');
       return;
     }
 
+    // Validación de direcciones para evitar resolución ENS en red Hardhat (sin soporte ENS)
+    const isAddr = (v) => /^0x[0-9a-fA-F]{40}$/.test(v);
+    const missing = [];
+    if (!isAddr(seller)) missing.push('seller');
+    if (!isAddr(buyer)) missing.push('buyer');
+    if (!isAddr(notary)) missing.push('notary');
+    if (!isAddr(gov)) missing.push('government');
+    if (missing.length) {
+      this._flash('Direcciones inválidas o vacías: ' + missing.join(', ') + '. Usa hex 0x...');
+      return;
+    }
+
     try {
-      if (!this.propertyId) {
+      if (!this.id) {
         // Construimos FormData manual para garantizar estructura property_record[...] y evitar problemas de model_name
         const fd = new FormData();
         fd.append('property_record[seller_address]', seller);
@@ -49,11 +61,11 @@ export default class extends Controller {
           this._flash('Error creando propiedad: ' + (dataCreate.errors || dataCreate.error || 'desconocido'));
           return;
         }
-        this.propertyId = dataCreate.id;
-        this._flash('Propiedad creada (#'+this.propertyId+'). Registrando on-chain...');
+  this.id = dataCreate.id;
+  this._flash('Propiedad creada (#'+this.id+'). Registrando');
       }
 
-      // Paso 2: registrar on-chain
+      // Paso 2: registrar
       if (!window.ethereum) { this._flash('MetaMask requerido'); return; }
       if (!(await this.ensureNetwork())) return;
       await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -66,16 +78,90 @@ export default class extends Controller {
         this._flash('CONTRACT_ADDRESS inválido');
         return;
       }
-      const abi = ["function registerProperty(bytes32 docHash,address buyer,address notary) returns (uint256)"];
-      const contract = new ethers.Contract(contractAddress, abi, signer);
-      const zeroDocHash = '0x' + '0'.repeat(64); // Placeholder mientras no se requiera hash
-      this._flash('Enviando transacción...');
-      const tx = await contract.registerProperty(zeroDocHash, buyer, notary);
+      // Normalizar direcciones (checksum) y reforzar validación para evitar que ethers intente ENS
+      try {
+        buyer = ethers.getAddress(buyer);
+        notary = ethers.getAddress(notary);
+        // Normalizamos también seller y gov si fueron ingresadas (aunque seller se sustituye por signer más abajo)
+        if (seller) seller = ethers.getAddress(seller);
+        if (gov) gov = ethers.getAddress(gov);
+      } catch(addrErr) {
+        this._flash('Direcciones inválidas (checksum): ' + (addrErr.message || addrErr));
+        return;
+      }
+
+    const abi = [
+      "function registerProperty(bytes32 docHash,address buyer,address notary) returns (uint256)",
+      // Evento real en el contrato: id, seller, buyer indexados; data: notary, docHash
+      "event PropertyRegistered(uint256 indexed id,address indexed seller,address indexed buyer,address notary,bytes32 docHash)"
+    ];
+    const contract = new ethers.Contract(contractAddress, abi, signer);
+    // Hash real del documento (keccak256 del contenido) para trazabilidad on-chain
+    const fileBuffer = await fileInput.files[0].arrayBuffer();
+    const fileBytes = new Uint8Array(fileBuffer);
+    const docHash = ethers.keccak256(fileBytes);
+    this._flash('Enviando transacción (hash documento calculado)...');
+    let tx;
+    try {
+      tx = await contract.registerProperty(docHash, buyer, notary);
+    } catch(callErr) {
+      if (/UNSUPPORTED_OPERATION/.test(callErr.message) && /ENS/.test(callErr.message)) {
+        this._flash('Error ENS: Ingresa direcciones hex válidas (0x...40hex).');
+        return;
+      }
+      throw callErr;
+    }
       this._flash('Tx enviada, esperando recibo...');
       const receipt = await tx.wait();
       const txHash = receipt.hash;
-      await this._callback({ property_id: this.propertyId, seller_address: from, buyer_address: buyer, notary_address: notary, government_address: gov, tx_hash: txHash });
-      this._flash('Registro on-chain registrado');
+      let onChainId = null;
+      try {
+        const log = receipt.logs.find(l => l.address && l.address.toLowerCase() === contractAddress.toLowerCase() && l.topics && l.topics.length === 4);
+        if (log) {
+          try {
+            // topic[1] => id
+            onChainId = BigInt(log.topics[1]).toString();
+            // Extra validations opcionales
+            const buyerTopic  = log.topics[3];
+            const buyerAddr  = '0x' + buyerTopic.slice(26);
+            if (buyerAddr.toLowerCase() !== buyer.toLowerCase()) {
+              console.warn('Buyer en evento difiere de formulario', buyerAddr, buyer);
+            }
+            // data: notary (32 bytes) + docHash (32 bytes)
+            const dataHex = log.data.slice(2);
+            if (dataHex.length === 128) {
+              const notarySlot = dataHex.slice(0,64);
+              const docHashSlot = dataHex.slice(64,128);
+              const notaryAddr = '0x' + notarySlot.slice(24);
+              const docHashEvt = '0x' + docHashSlot;
+              if (notaryAddr.toLowerCase() !== notary.toLowerCase()) {
+                console.warn('Notary en evento difiere de formulario', notaryAddr, notary);
+              }
+              if (docHashEvt.toLowerCase() !== docHash.toLowerCase()) {
+                console.warn('docHash evento != docHash calculado', docHashEvt, docHash);
+              }
+            } else {
+              console.warn('Tamaño data inesperado para PropertyRegistered:', dataHex.length);
+            }
+          } catch (inner) {
+            console.warn('Error decodificando log PropertyRegistered', inner);
+          }
+        } else {
+          console.warn('Log PropertyRegistered no encontrado (topics!=4 o dirección distinta)');
+        }
+      } catch (outer) {
+        console.warn('Fallo general decodificando evento PropertyRegistered', outer);
+      }
+debugger
+      await this._callback({
+        property_id: this.id,
+        property_id_on_chain: onChainId,
+        seller_address: from,
+        buyer_address: buyer,
+        notary_address: notary,
+        government_address: gov,
+        tx_hash: txHash
+      });
       window.location.href = '/properties';
     } catch (e) {
       console.error(e);

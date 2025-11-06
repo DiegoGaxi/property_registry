@@ -4,7 +4,7 @@ module Blockchain
     protect_from_forgery with: :null_session
 
   # POST /blockchain/tx_callback
-  # Params: property_id, buyer_address, notary_address, seller_address (wallet used), tx_hash
+  # Params: property_id, buyer_address, notary_address, seller_address (wallet used), tx_hash, property_id_on_chain (opcional)
     def create
       required = %i[property_id buyer_address notary_address seller_address tx_hash]
       missing = required.select { |k| params[k].blank? }
@@ -18,9 +18,13 @@ module Blockchain
         Rails.logger.warn("[tx_callback] Dirección desalineada contra record existente")
       end
 
+      # Persistir id on-chain si viene y aún no está
+      if params[:property_id_on_chain].present? && pr.property_id_on_chain.blank?
+        pr.update(property_id_on_chain: params[:property_id_on_chain])
+      end
       # Registrar transacción asociada al property existente
       PropertyTransactionRecorder.new.record(property: pr, action: 'registerProperty', tx_hash: params[:tx_hash])
-      render json: { ok: true, property_id: pr.id, tx_hash: params[:tx_hash] }
+      render json: { ok: true, property_id: pr.id, property_id_on_chain: pr.property_id_on_chain, tx_hash: params[:tx_hash] }
     end
   end
 end

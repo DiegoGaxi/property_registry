@@ -7,7 +7,7 @@ RSpec.describe 'Property lifecycle', type: :request do
   let(:gov)    { '0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db' }
 
   def create_record
-    PropertyRecord.create!(seller_address: seller, buyer_address: buyer, notary_address: notary, government_address: gov, document_path: 'storage/property_documents/dummy.txt', status: :pending_notary, property_id_on_chain: 1)
+    PropertyRecord.create!(seller_address: seller, buyer_address: buyer, notary_address: notary, government_address: gov, document_path: 'storage/property_documents/dummy.txt', status: :pending_notary)
   end
 
   before do

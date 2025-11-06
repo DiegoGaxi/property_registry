@@ -12,8 +12,6 @@ if addr.blank?
       artifact_addr = json['address']
       if artifact_addr =~ /^0x[0-9a-fA-F]{40}$/
         ENV['CONTRACT_ADDRESS'] = artifact_addr
-        addr = artifact_addr
-        Rails.logger.info("[Blockchain] CONTRACT_ADDRESS cargado desde artifact: #{addr}")
       else
         Rails.logger.warn("[Blockchain] Artifact encontrado pero dirección inválida: #{artifact_addr}")
       end
@@ -23,11 +21,4 @@ if addr.blank?
   else
     Rails.logger.info('[Blockchain] Artifact de despliegue no encontrado para autoload.')
   end
-end
-
-if addr.present? && placeholder_patterns.any? { |rx| addr.match?(rx) }
-  Rails.logger.warn("[Blockchain] CONTRACT_ADDRESS parece placeholder (#{addr}). Establece la dirección real del despliegue Hardhat.")
-end
-if addr.present? && addr !~ /^0x[0-9a-fA-F]{40}$/
-  Rails.logger.warn("[Blockchain] CONTRACT_ADDRESS formato inválido: #{addr}. Debe ser 0x + 40 hex.")
 end

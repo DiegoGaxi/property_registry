@@ -1,30 +1,18 @@
 <div class="acciones" data-controller="property-approval"
-     data-property-approval-property-id-value="<%= property.property_id_on_chain || property.id %>"
+     data-property-approval-property-id-value="<%= property.id %>"
      data-property-approval-seller-address-value="<%= property.seller_address %>"
      data-property-approval-buyer-address-value="<%= property.buyer_address %>"
      data-property-approval-notary-address-value="<%= property.notary_address %>"
      data-property-approval-government-address-value="<%= property.government_address %>">
-  <% if ENV['SERVER_SIGNING_DISABLED'] == '1' %>
-      <% if property.pending_notary? %>
-        <button data-action="click->property-approval#notaryApprove" data-role="notary">MetaMask: Aprobar Notario</button>
-      <% elsif property.notary_approved? %>
-        <button data-action="click->property-approval#buyerApprove" data-role="buyer">MetaMask: Aprobar Comprador</button>
-      <% elsif property.buyer_approved? %>
-        <button data-action="click->property-approval#governmentSeal" data-role="government">MetaMask: Sellar Gobierno</button>
-      <% elsif property.government_sealed? %>
-        <%= button_to 'Marcar Completada', mark_completed_property_path(property), method: :patch, data: { turbo_stream: true } %>
-      <% end %>
-  <% else %>
     <% if property.pending_notary? %>
-      <%= button_to 'Aprobar Notario', notary_approve_property_path(property), method: :patch, data: { turbo_stream: true } %>
+      <button data-action="click->property-approval#notaryApprove" data-role="notary">MetaMask: Aprobar Notario</button>
     <% elsif property.notary_approved? %>
-      <%= button_to 'Aprobar Comprador', buyer_approve_property_path(property), method: :patch, data: { turbo_stream: true } %>
+      <button data-action="click->property-approval#buyerApprove" data-role="buyer">MetaMask: Aprobar Comprador</button>
     <% elsif property.buyer_approved? %>
-      <%= button_to 'Sellar Gobierno', government_seal_property_path(property), method: :patch, data: { turbo_stream: true } %>
+      <button data-action="click->property-approval#governmentSeal" data-role="government">MetaMask: Sellar Gobierno</button>
     <% elsif property.government_sealed? %>
       <%= button_to 'Marcar Completada', mark_completed_property_path(property), method: :patch, data: { turbo_stream: true } %>
     <% end %>
-  <% end %>
 
   <% unless property.completed? || property.cancelled? %>
     <%= button_to 'Cancelar', cancel_property_path(property), method: :patch, data: { turbo_stream: true }, form: { data: { turbo_confirm: '¿Seguro quieres cancelar?' } } %>

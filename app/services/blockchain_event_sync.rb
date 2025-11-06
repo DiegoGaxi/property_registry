@@ -47,7 +47,7 @@ class BlockchainEventSync
     case name
     when 'PropertyRegistered'
       id = args['id'] || args['propertyId'] || args.values.first
-      pr = PropertyRecord.find_or_initialize_by(property_id_on_chain: id)
+      pr = PropertyRecord.find_or_initialize_by(id: id)
       pr.seller_address ||= args['seller']
       pr.buyer_address  ||= args['buyer']
       pr.notary_address ||= args['notary']
@@ -69,7 +69,7 @@ class BlockchainEventSync
 
   def update_status(args, status)
     id = args['id'] || args.values.first
-    pr = PropertyRecord.find_by(property_id_on_chain: id)
+    pr = PropertyRecord.find_by(id: id)
     return unless pr
     return if pr.status.to_sym == status
     pr.update(status: status)

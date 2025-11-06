@@ -28,12 +28,6 @@
       <label>Gobierno</label>
       <div class="value mono"><%= @property.government_address %><button class="mini-btn" onclick="navigator.clipboard.writeText('<%= @property.government_address %>')">Copiar</button></div>
     </div>
-    <% if @property.property_id_on_chain.present? %>
-      <div class="detail-field">
-        <label>ID On-Chain</label>
-        <div class="value mono"><%= @property.property_id_on_chain %></div>
-      </div>
-    <% end %>
     <div class="detail-field">
       <label>Status</label>
       <div class="value"><span class="status-badge status-<%= @property.status %>"><%= @property.human_status %></span></div>

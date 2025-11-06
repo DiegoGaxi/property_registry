@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_11_04_195900) do
+ActiveRecord::Schema[7.2].define(version: 2025_11_05_183000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,6 +19,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_04_195900) do
     t.string "buyer_address", null: false
     t.string "notary_address", null: false
     t.string "government_address"
+    t.string "doc_hash", null: false
     t.integer "status", default: 0, null: false
     t.integer "property_id_on_chain"
     t.integer "chain_id"
@@ -28,7 +29,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_04_195900) do
     t.index ["buyer_address"], name: "index_property_records_on_buyer_address"
     t.index ["document_path"], name: "index_property_records_on_document_path"
     t.index ["notary_address"], name: "index_property_records_on_notary_address"
-    t.index ["property_id_on_chain"], name: "index_property_records_on_property_id_on_chain"
     t.index ["seller_address"], name: "index_property_records_on_seller_address"
   end
 

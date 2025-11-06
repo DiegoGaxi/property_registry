@@ -19,22 +19,27 @@ class PropertiesController < ApplicationController
     uploaded = params.dig(:property_record, :document_file)
     # Guardar archivo primero para poder validar presence de document_path
     stored_relative_path = nil
+    doc_hash = nil
     if uploaded.present?
       begin
         require 'fileutils'
+        require 'eth'
         dir = Rails.root.join('storage','property_documents')
         FileUtils.mkdir_p(dir)
         original_ext = File.extname(uploaded.original_filename).presence || '.bin'
         filename = "prop_#{SecureRandom.hex(8)}#{original_ext}"
         path = dir.join(filename)
-        File.open(path,'wb'){|f| f.write(uploaded.read)}
+        file_bytes = uploaded.read
+        File.open(path,'wb'){|f| f.write(file_bytes)}
+        # keccak256 para alinear con hash usado on-chain
+        raw = Eth::Utils.keccak256(file_bytes)
+        doc_hash = '0x' + raw.unpack1('H*')
         stored_relative_path = path.relative_path_from(Rails.root).to_s
       rescue => e
         Rails.logger.error("[Property#create] Error guardando documento: #{e.class}: #{e.message}")
       end
     end
-
-    attrs = property_params.merge(status: :pending_notary, document_path: stored_relative_path)
+    attrs = property_params.merge(status: :pending_notary, document_path: stored_relative_path, doc_hash: doc_hash)
     @property = PropertyRecord.new(attrs)
     respond_to do |format|
       if @property.save
@@ -76,68 +81,28 @@ class PropertiesController < ApplicationController
 
   def notary_approve
     ensure_role!(:notary)
-    if ENV['SERVER_SIGNING_DISABLED'] == '1'
-      # Esperar tx_hash desde params (flujo MetaMask)
-      if params[:tx_hash].blank?
-        redirect_to @property, alert: 'tx_hash faltante (firma cliente). Envia notaryApprove con MetaMask primero.' and return
-      end
-    else
-      if ENV['PRIVATE_KEY_NOTARY'].blank? || ENV['PRIVATE_KEY_NOTARY'].include?('__RELLENA__')
-        redirect_to @property, alert: 'Falta PRIVATE_KEY_NOTARY en .env (o habilita SERVER_SIGNING_DISABLED=1 para usar MetaMask).' and return
-      end
-      if @property.property_id_on_chain.blank?
-        redirect_to @property, alert: 'property_id_on_chain ausente; registra primero on-chain.' and return
-      end
-      client = BlockchainPropertyRegistryClient.new(private_key: ENV['PRIVATE_KEY_NOTARY'])
-      tx_hash = client.notary_approve(@property.property_id_on_chain.to_i)
-  PropertyTransactionRecorder.new.record(property: @property, action: 'notaryApprove', tx_hash: tx_hash)
-    end
     @property.update(status: :notary_approved)
-  PropertyTransactionRecorder.new.record(property: @property, action: 'notaryApprove', tx_hash: params[:tx_hash]) if params[:tx_hash].present?
+    PropertyTransactionRecorder.new.record(property: @property, action: 'notaryApprove', tx_hash: params[:tx_hash]) if params[:tx_hash].present?
     turbo_stream_replace_status
   end
 
   def buyer_approve
     ensure_role!(:buyer)
-    if ENV['SERVER_SIGNING_DISABLED'] == '1'
-      if params[:tx_hash].blank?
-        redirect_to @property, alert: 'tx_hash faltante (firma cliente). Ejecuta buyerApprove en MetaMask.' and return
-      end
-    else
-      if ENV['PRIVATE_KEY_BUYER'].blank? || ENV['PRIVATE_KEY_BUYER'].include?('__RELLENA__')
-        redirect_to @property, alert: 'Falta PRIVATE_KEY_BUYER (o usa SERVER_SIGNING_DISABLED=1).' and return
-      end
-      if @property.property_id_on_chain.blank?
-        redirect_to @property, alert: 'property_id_on_chain ausente; registra primero on-chain.' and return
-      end
-      client = BlockchainPropertyRegistryClient.new(private_key: ENV['PRIVATE_KEY_BUYER'])
-      tx_hash = client.buyer_approve(@property.property_id_on_chain.to_i)
-  PropertyTransactionRecorder.new.record(property: @property, action: 'buyerApprove', tx_hash: tx_hash)
+    unless @property.notary_approved?
+      redirect_to @property, alert: 'El notario debe aprobar primero.' and return
     end
     @property.update(status: :buyer_approved)
-  PropertyTransactionRecorder.new.record(property: @property, action: 'buyerApprove', tx_hash: params[:tx_hash]) if params[:tx_hash].present?
+    PropertyTransactionRecorder.new.record(property: @property, action: 'buyerApprove', tx_hash: params[:tx_hash]) if params[:tx_hash].present?
     turbo_stream_replace_status
   end
 
   def government_seal
     ensure_role!(:government)
-    if ENV['SERVER_SIGNING_DISABLED'] == '1'
-      if params[:tx_hash].blank?
-        redirect_to @property, alert: 'tx_hash faltante (firma cliente). Ejecuta governmentSeal con MetaMask.' and return
-      end
-    else
-      if ENV['PRIVATE_KEY_GOV'].blank? || ENV['PRIVATE_KEY_GOV'].include?('__RELLENA__')
-        redirect_to @property, alert: 'Falta PRIVATE_KEY_GOV (o usa SERVER_SIGNING_DISABLED=1).' and return
-      end
-      if @property.property_id_on_chain.blank?
-        redirect_to @property, alert: 'property_id_on_chain ausente; registra primero on-chain.' and return
-      end
-      client = BlockchainPropertyRegistryClient.new(private_key: ENV['PRIVATE_KEY_GOV'])
-      tx_hash = client.government_seal(@property.property_id_on_chain.to_i)
-  PropertyTransactionRecorder.new.record(property: @property, action: 'governmentSeal', tx_hash: tx_hash)
+    unless @property.buyer_approved?
+      redirect_to @property, alert: 'Falta aprobación del comprador.' and return
     end
     @property.update(status: :government_sealed)
-  PropertyTransactionRecorder.new.record(property: @property, action: 'governmentSeal', tx_hash: params[:tx_hash]) if params[:tx_hash].present?
+    PropertyTransactionRecorder.new.record(property: @property, action: 'governmentSeal', tx_hash: params[:tx_hash]) if params[:tx_hash].present?
     turbo_stream_replace_status
   end
 

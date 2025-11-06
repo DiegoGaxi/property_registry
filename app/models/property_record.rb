@@ -1,5 +1,5 @@
 class PropertyRecord < ApplicationRecord
-  # Columns: seller_address, buyer_address, notary_address, government_address, document_path, status, chain_id, property_id_on_chain
+  # Columns: seller_address, buyer_address, notary_address, government_address, doc_hash, document_path(optional), status, chain_id, property_id_on_chain
   # Positional enum syntax (Rails 8 compatible)
   enum :status, {
     pending_notary: 0,
@@ -11,7 +11,8 @@ class PropertyRecord < ApplicationRecord
   }
 
   validates :seller_address, :buyer_address, :notary_address, presence: true
-  validates :document_path, presence: true
+  validates :doc_hash, presence: true
+  validates :document_path, presence: true, allow_blank: false
 
   def human_status
     status.titleize

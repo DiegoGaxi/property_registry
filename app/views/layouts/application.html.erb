@@ -18,7 +18,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-contract-address="<%= ENV['CONTRACT_ADDRESS'] %>">
+  <body data-contract-address="<%= ENV['CONTRACT_ADDRESS'] %>" data-chain-id="<%= ENV['CHAIN_ID'] %>">
     <nav class="app-navbar" data-controller="navbar">
       <div class="nav-section nav-left">
         <a href="/" class="brand" aria-label="Inicio">

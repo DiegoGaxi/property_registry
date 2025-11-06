@@ -154,7 +154,6 @@ function governmentSeal(uint256 id)
 ```
 
 Requisitos:
-- `property_id_on_chain` debe existir (registrar primero la propiedad con MetaMask para obtener id).
 - `CONTRACT_ADDRESS` válido (0x + 40 hex) presente en `<body data-contract-address>`.
 
 Si prefieres flujo híbrido, quita la variable y vuelve al modo firma servidor (requiere OpenSSL operativo).
@@ -167,7 +166,7 @@ GOVERNMENT_ROLE (<addr>): YES
 
 ## Flujo (off-chain + on-chain)
 1. Registrar propiedad (crea `PropertyRecord` con estado inicial `pending_notary` y envía transacción `registerProperty`).
-2. Evento `PropertyRegistered` (sync) puede actualizar `property_id_on_chain` si está disponible.
+2. Evento `PropertyRegistered`
 3. Notario aprueba -> `notaryApprove` -> estado `notary_approved`.
 4. Comprador aprueba -> `buyerApprove` -> estado `buyer_approved`.
 5. Gobierno sella -> `governmentSeal` -> estado `government_sealed`.

@@ -14,6 +14,5 @@ class CreatePropertyRecords < ActiveRecord::Migration[7.1]
     add_index :property_records, :seller_address
     add_index :property_records, :buyer_address
     add_index :property_records, :notary_address
-    add_index :property_records, :property_id_on_chain
   end
 end
